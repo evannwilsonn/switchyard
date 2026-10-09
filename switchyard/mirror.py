@@ -41,7 +41,10 @@ def mirror(database: str, duckdb_path: Path) -> int:
         files = sorted(dest.glob("*.parquet"))
         s, t = schema.lower(), table.lower()
         duck.execute(f"create schema if not exists {s}")
-        duck.execute(f"drop view if exists {s}.{t}")
+        kind = duck.execute("select table_type from information_schema.tables where table_schema = ? and table_name = ?",
+                            [s, t]).fetchone()
+        if kind and kind[0] == "VIEW":
+            duck.execute(f"drop view {s}.{t}")
         if files:
             paths = [f.as_posix() for f in files]
             cols = [r[0] for r in duck.execute(f"describe select * from read_parquet({paths})").fetchall()]
