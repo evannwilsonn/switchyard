@@ -1,0 +1,33 @@
+# Weekly scheduled run against Snowflake. Needs three repository secrets:
+#   SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, SNOWFLAKE_PRIVATE_KEY (contents of rsa_key.p8)
+name: weekly-run
+on:
+  schedule:
+    - cron: "17 11 * * 1"   # Mondays 07:17 New York (EDT)
+  workflow_dispatch: {}
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - name: Write the Snowflake key
+        run: |
+          mkdir -p ~/.snowflake
+          printf '%s\n' "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > ~/.snowflake/rsa_key.p8
+          chmod 600 ~/.snowflake/rsa_key.p8
+      - name: Run every product
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY_PATH: ~/.snowflake/rsa_key.p8
+          SNOWFLAKE_ROLE: SYSADMIN
+        run: |
+          export SNOWFLAKE_PRIVATE_KEY_PATH=$HOME/.snowflake/rsa_key.p8
+          python -m switchyard.run --target snowflake --trigger schedule
+          python -m app.build_app --target snowflake
+      - uses: actions/upload-artifact@v4
+        with: {name: switchyard-app, path: app/build}

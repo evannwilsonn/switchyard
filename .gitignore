@@ -1,0 +1,7 @@
+projects/
+warehouse/
+app/build/
+__pycache__/
+.venv/
+logs/
+*.p8

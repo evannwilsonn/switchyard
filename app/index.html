@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Switchyard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f4f5f7;--surface:#ffffff;--surface-2:#f8f9fb;--line:#e3e5ea;--line-2:#d3d6dd;
+  --text:#14161c;--text-2:#4a4f5c;--text-3:#767b88;
+  --s1:#2a6fdb;--s2:#a8630f;--s3:#16865a;--focus:#2a6fdb;
+  --ok:#16865a;--ok-bg:rgba(22,134,90,.10);--bad:#c2412d;--bad-bg:rgba(194,65,45,.10);--warn:#a8630f;
+  --font:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;--bg:#0c0c12;--surface:#13131b;--surface-2:#191922;--line:#25252f;--line-2:#33333f;
+  --text:#f2f3f6;--text-2:#b4b7c2;--text-3:#878a96;--s1:#3d7eff;--s2:#c27a1a;--s3:#1fa36b;--focus:#7ea8ff;
+  --ok:#4cc38a;--ok-bg:rgba(76,195,138,.12);--bad:#ff7a6b;--bad-bg:rgba(255,122,107,.12);--warn:#e0a24a}}
+:root[data-theme="dark"]{
+  color-scheme:dark;--bg:#0c0c12;--surface:#13131b;--surface-2:#191922;--line:#25252f;--line-2:#33333f;
+  --text:#f2f3f6;--text-2:#b4b7c2;--text-3:#878a96;--s1:#3d7eff;--s2:#c27a1a;--s3:#1fa36b;--focus:#7ea8ff;
+  --ok:#4cc38a;--ok-bg:rgba(76,195,138,.12);--bad:#ff7a6b;--bad-bg:rgba(255,122,107,.12);--warn:#e0a24a}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--font);display:flex;flex-direction:column}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+.bar{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1320px;margin:0 auto;padding:12px 20px 0;display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.brand{padding-bottom:12px}
+.brand h1{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em}
+.brand p{margin:2px 0 0;font-size:12.5px;color:var(--text-3)}
+nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav button{font:500 14px var(--font);color:var(--text-2);background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px 12px;cursor:pointer;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--s1)}
+nav button small{display:block;font-size:11px;color:var(--text-3);font-weight:400}
+main{flex:1;min-height:0;display:flex;flex-direction:column}
+.view{flex:1;min-height:0}
+.view[hidden]{display:none}
+iframe{display:block;width:100%;height:100%;min-height:calc(100vh - 70px);border:0;background:var(--bg)}
+.wrap{max-width:1320px;margin:0 auto;padding:20px 20px 48px}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpi .lbl{font-size:13px;font-weight:500;color:var(--text-2)}
+.kpi .v{font-size:26px;font-weight:600;letter-spacing:-.02em;margin:6px 0 4px;font-variant-numeric:tabular-nums}
+.kpi .d{font-size:12.5px;color:var(--text-3)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.card header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.card h2{margin:0;font-size:15px;font-weight:600}
+.card .sub{font-size:12.5px;color:var(--text-3)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.full{grid-column:1/-1}
+.prod .kind{font:500 11px var(--font);letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.prod h3{margin:2px 0 10px;font-size:18px;font-weight:600}
+.steps{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:6px}
+.steps li{display:grid;grid-template-columns:16px 112px minmax(0,1fr) 54px;gap:8px;align-items:center;font-size:13px}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot.success{background:var(--ok)}.dot.error{background:var(--bad)}
+.steps .det{color:var(--text-3);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.steps .sec{text-align:right;font-variant-numeric:tabular-nums;color:var(--text-2)}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.facts div{background:var(--surface-2);border-radius:10px;padding:8px 10px}
+.facts b{display:block;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.facts span{font-size:11.5px;color:var(--text-3)}
+.layers{font-size:12.5px;color:var(--text-2);margin:0 0 12px}
+.layers code{font-family:var(--mono);font-size:11.5px}
+.open{font:500 13px var(--font);color:var(--text);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
+.open:hover{border-color:var(--s1)}
+.pill{display:inline-flex;align-items:center;gap:6px;font:600 11.5px var(--font);border-radius:999px;padding:2px 9px}
+.pill.success{color:var(--ok);background:var(--ok-bg)}.pill.error{color:var(--bad);background:var(--bad-bg)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-weight:500;color:var(--text-3);text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);font-size:12px;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td code{font-family:var(--mono);font-size:12px;color:var(--text-2)}
+.arch svg{display:block;width:100%;height:auto}
+.arch text{font:12px var(--font);fill:var(--text-2)}
+.arch .t{font-weight:600;fill:var(--text)}
+footer{max-width:1320px;margin:0 auto;padding:0 20px 32px;color:var(--text-3);font-size:12.5px}
+footer a{color:var(--text-2)}
+@media (max-width:1000px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}}
+@media (max-width:560px){.kpis{grid-template-columns:1fr}.hide-sm{display:none}}
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><h1>Switchyard</h1><p>One data platform · three data products</p></div>
+  <nav role="tablist" aria-label="Views" id="tabs"></nav>
+</div></header>
+<main>
+  <section class="view" id="v-platform" role="tabpanel">
+    <div class="wrap">
+      <section class="kpis" id="kpis" aria-label="Platform summary"></section>
+      <section class="grid" id="products"></section>
+      <section class="grid">
+        <article class="card full arch">
+          <header><h2>How it fits together</h2><span class="sub">Switchyard runs each product's steps in order and logs every run to the ops schema this page reads</span></header>
+          <div id="arch"></div>
+        </article>
+        <article class="card full">
+          <header><h2>Run history</h2><span class="sub">Every run, oldest at the bottom</span></header>
+          <div style="overflow-x:auto"><table id="runs"></table></div>
+        </article>
+      </section>
+    </div>
+    <footer id="foot"></footer>
+  </section>
+</main>
+<script>
+/*__OPS__*/
+(function(){
+const O = window.OPS, $ = id => document.getElementById(id);
+const fmtN = v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e4?Math.round(v/1e3)+'K':Math.round(v).toLocaleString('en-US');
+const when = s => s?new Date(s.replace(' ','T')+'Z').toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'–';
+const secs = s => s>=60?Math.floor(s/60)+'m '+Math.round(s%60)+'s':s.toFixed(1)+'s';
+const STEP_NAME = {extract:'Extract',load:'Load raw',warehouse_load:'Snowflake load',transform:'dbt build',export:'Export'};
+const prods = O.projects.filter(p=>O.latest[p.name]);
+
+/* tabs: platform + one per product, each product view is its own dashboard in a frame */
+const tabs=[{id:'platform',title:'Platform',kind:'Health and runs'}].concat(prods.map(p=>({id:p.name,title:p.title,kind:p.kind})));
+$('tabs').innerHTML=tabs.map((t,i)=>`<button role="tab" data-v="${t.id}" aria-selected="${i===0}">${t.title}<small>${t.kind}</small></button>`).join('');
+const main=document.querySelector('main');
+prods.forEach(p=>{const s=document.createElement('section');s.className='view';s.id='v-'+p.name;s.hidden=true;s.setAttribute('role','tabpanel');s.dataset.src=p.name+'/index.html';main.appendChild(s)});
+function show(id){
+  document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===id));
+  document.querySelectorAll('.view').forEach(v=>{v.hidden=v.id!=='v-'+id; if(!v.hidden&&v.dataset.src&&!v.firstChild){v.innerHTML=`<iframe src="${v.dataset.src}" title="${id} dashboard"></iframe>`}});
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+  scrollTo(0,0);
+}
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(b.dataset.v)});
+
+/* summary */
+const tests=prods.flatMap(p=>O.latest[p.name].dbt.filter(d=>d.resource_type==='test'));
+const testPass=tests.filter(d=>d.status==='pass').reduce((a,d)=>a+d.n,0), testAll=tests.reduce((a,d)=>a+d.n,0), testWarn=tests.filter(d=>d.status==='warn').reduce((a,d)=>a+d.n,0);
+const models=prods.flatMap(p=>O.latest[p.name].dbt.filter(d=>d.resource_type==='model')).reduce((a,d)=>a+d.n,0);
+const rowsAll=prods.flatMap(p=>O.latest[p.name].tables).reduce((a,t)=>a+(t.row_count||0),0);
+const last=O.runs[0];
+const runSecs=last?(new Date(last.finished_at.replace(' ','T'))-new Date(last.started_at.replace(' ','T')))/1000:0;
+$('kpis').innerHTML=[
+  ['Data products',prods.length,'Each its own repo and dbt project'],
+  ['Last run',last?`<span class="pill ${last.status}">${last.status}</span>`:'–',last?`${when(last.started_at)} · ${secs(runSecs)} · ${last.target==='snowflake'?'Snowflake':'DuckDB'}`:''],
+  ['Tests passing',`${testPass} / ${testAll}`,testWarn?`${testWarn} intended warning${testWarn>1?'s':''} (stale public data)`:'Across every product'],
+  ['dbt models',models,'Built on every run'],
+  ['Rows in the warehouse',fmtN(rowsAll),'Raw through reporting, all products'],
+].map(([l,v,d])=>`<div class="kpi"><div class="lbl">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+
+/* product cards */
+$('products').innerHTML=prods.map(p=>{
+  const L=O.latest[p.name], t=L.dbt, sum=(rt,st)=>t.filter(d=>d.resource_type===rt&&(!st||d.status===st)).reduce((a,d)=>a+d.n,0);
+  const total=L.steps.reduce((a,s)=>a+s.seconds,0), rows=L.tables.reduce((a,x)=>a+(x.row_count||0),0);
+  const ok=L.steps.every(s=>s.status==='success');
+  return `<article class="card prod"><span class="kind">${p.kind}</span><h3>${p.title} <span class="pill ${ok?'success':'error'}">${ok?'healthy':'failed'}</span></h3>
+    <div class="facts"><div><b>${sum('test','pass')}/${sum('test')}</b><span>tests passing</span></div><div><b>${sum('model')}</b><span>models</span></div><div><b>${fmtN(rows)}</b><span>rows</span></div></div>
+    <ul class="steps">${L.steps.map(s=>`<li><span class="dot ${s.status}"></span><span>${STEP_NAME[s.step]||s.step}</span><span class="det" title="${(s.detail||'').replace(/"/g,'&quot;')}">${(s.detail||'').split('\n').pop()}</span><span class="sec">${secs(s.seconds)}</span></li>`).join('')}</ul>
+    <p class="layers">${L.tables.map(x=>`<code>${x.schema_name}</code> ${x.tables}`).join(' · ')} tables${p.snowflake_database&&O.target==='snowflake'?` · Snowflake <code>${p.snowflake_database}</code>`:''}</p>
+    <button class="open" type="button" data-open="${p.name}">Open the ${p.title} dashboard →</button></article>`}).join('');
+$('products').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
+
+/* architecture */
+const W=1260,H=230,col=[20,250,500,750,1010],bw=220;
+const box=(x,y,w,h,t,s)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="var(--surface-2)" stroke="var(--line-2)"/><text class="t" x="${x+12}" y="${y+22}">${t}</text>${s.map((l,i)=>`<text x="${x+12}" y="${y+42+i*17}">${l}</text>`).join('')}`;
+const arrow=(x1,y1,x2,y2)=>`<path d="M${x1} ${y1} C ${x1+30} ${y1}, ${x2-30} ${y2}, ${x2} ${y2}" fill="none" stroke="var(--text-3)" stroke-width="1.4" marker-end="url(#ah)"/>`;
+$('arch').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sources flow through extract, load, dbt and into dashboards, with every step logged to the ops schema"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--text-3)"/></marker></defs>
+  ${box(col[0],20,bw,110,'Sources',['Market + macro series','Olist e-commerce orders','Street video (CC BY 4.0)'])}
+  ${box(col[1],20,bw,110,'Extract',['Downloads + SHA-256 manifest','YOLOv8 + CLIP on video','(or the published snapshot)'])}
+  ${box(col[2],20,bw,110,'Warehouse',['Raw layer in DuckDB','copied to Snowflake','one database per product'])}
+  ${box(col[3],20,bw,110,'dbt',['staging → core → reporting',`${models} models, ${testAll} tests`,'same SQL on both engines'])}
+  ${box(col[4],20,bw,110,'Dashboards',prods.map(p=>p.title))}
+  ${box(col[2],160,bw*2+30,52,'Ops log · PLATFORM.OPS',['runs, steps, dbt results, row counts → this page'])}
+  ${arrow(col[0]+bw,75,col[1],75)}${arrow(col[1]+bw,75,col[2],75)}${arrow(col[2]+bw,75,col[3],75)}${arrow(col[3]+bw,75,col[4],75)}
+  <path d="M${col[1]+bw/2} 130 L${col[1]+bw/2} 186 L${col[2]} 186" fill="none" stroke="var(--line-2)" stroke-dasharray="4 4" marker-end="url(#ah)"/>
+  <path d="M${col[3]+bw/2} 130 L${col[3]+bw/2} 160" fill="none" stroke="var(--line-2)" stroke-dasharray="4 4" marker-end="url(#ah)"/></svg>`;
+
+/* run history */
+const RS={};O.run_steps.forEach(r=>{(RS[r.run_id] ||= {})[r.project]=r});
+$('runs').innerHTML=`<thead><tr><th>Run</th><th>Started</th><th class="hide-sm">Target</th><th class="hide-sm">Trigger</th>${prods.map(p=>`<th class="hide-sm">${p.title}</th>`).join('')}<th>Duration</th><th>Status</th></tr></thead><tbody>`+
+  O.runs.map(r=>{const d=(new Date(r.finished_at.replace(' ','T'))-new Date(r.started_at.replace(' ','T')))/1000;
+    return `<tr><td><code>${r.run_id}</code></td><td>${when(r.started_at)}</td><td class="hide-sm">${r.target==='snowflake'?'Snowflake':'DuckDB'}</td><td class="hide-sm">${r.trigger_type}</td>${prods.map(p=>{const s=(RS[r.run_id]||{})[p.name];return `<td class="hide-sm">${s?(s.failed?'<span style="color:var(--bad)">failed</span>':secs(s.seconds)):'–'}</td>`}).join('')}<td>${secs(d)}</td><td><span class="pill ${r.status}">${r.status}</span></td></tr>`}).join('')+'</tbody>';
+
+$('foot').innerHTML=`Ops data from ${O.target==='snowflake'?'Snowflake <code>PLATFORM.OPS</code>':'the local ops database'} · built ${O.generated.replace('T',' ')} · <a href="https://github.com/evannwilsonn/switchyard">github.com/evannwilsonn/switchyard</a>`;
+const h=(location.hash||'').slice(1); if(h&&tabs.some(t=>t.id===h)) show(h);
+})();
+</script>
+</body>
+</html>

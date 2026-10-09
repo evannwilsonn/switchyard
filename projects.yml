@@ -1,0 +1,34 @@
+# The data products Switchyard runs. Each is its own repo with its own dbt project;
+# Switchyard clones them, runs their steps in order and records every run.
+projects:
+  - name: bellwether
+    title: Bellwether
+    kind: Markets pipeline
+    repo: https://github.com/evannwilsonn/bellwether.git
+    duckdb: warehouse/bellwether.duckdb
+    snowflake_database: BELLWETHER
+    raw_schemas: [raw_datahub]
+    steps: [extract, load, warehouse_load, transform, export]
+    extract: [ingest/extract.py]
+
+  - name: throughline
+    title: Throughline
+    kind: Executive KPI dashboard
+    repo: https://github.com/evannwilsonn/throughline.git
+    duckdb: warehouse/throughline.duckdb
+    snowflake_database: THROUGHLINE
+    raw_schemas: [raw_olist]
+    steps: [extract, load, warehouse_load, transform, export]
+    extract: [ingest/extract.py]
+
+  - name: clip-curator
+    title: Clip Curator
+    kind: AI video curation
+    repo: https://github.com/evannwilsonn/clip-curator.git
+    duckdb: warehouse/clip_curator.duckdb
+    snowflake_database: CLIP_CURATOR
+    raw_schemas: [raw_video]
+    steps: [extract, load, warehouse_load, transform, export]
+    # default: unpack the published extraction snapshot; --full-ai re-runs YOLOv8 + CLIP on the video
+    extract: [snapshot]
+    extract_full: [ingest/fetch_sources.py, ingest/build_clips.py, extract/run_extract.py]
