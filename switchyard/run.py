@@ -105,11 +105,16 @@ def step_transform(p: dict, path: Path, args) -> str:
 
 
 def step_export(p: dict, path: Path, args) -> str:
+    note = ""
+    if args.target == "snowflake":
+        from switchyard.mirror import mirror
+        n = mirror(p["snowflake_database"], path / p["duckdb"])
+        note = f" from Snowflake ({n} modeled tables pulled)"
     code, out = sh([PY, "dashboard/export_data.py"], path)
     if code:
         raise RuntimeError(out)
     wrote = [l for l in out.splitlines() if l.startswith("Wrote")]
-    return wrote[-1] if wrote else "exported"
+    return (wrote[-1] if wrote else "exported") + note
 
 
 STEPS = {"extract": step_extract, "load": step_load, "warehouse_load": step_warehouse_load,
