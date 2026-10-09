@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import yaml
@@ -84,7 +84,8 @@ def main() -> None:
                                max(case when status = 'error' then 1 else 0 end) as failed
                         from step_runs group by 1, 2""")
 
-    payload = {"generated": datetime.now().isoformat(timespec="seconds"), "target": args.target,
+    # generated is UTC, like every timestamp in the ops log
+    payload = {"generated": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(timespec="seconds"), "target": args.target,
                "projects": [{k: p[k] for k in ("name", "title", "kind", "repo", "snowflake_database")} for p in projects],
                "latest": latest, "runs": runs, "run_steps": run_steps}
     if args.save_ops:
