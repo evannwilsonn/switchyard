@@ -33,7 +33,14 @@ def mirror(database: str, duckdb_path: Path) -> int:
     duck = duckdb.connect(str(duckdb_path))
     for schema, table in objects:
         key = f"{schema}/{table}/"
-        cur.execute(f'copy into @_MIRROR._UNLOAD/{key} from (select * from {database}.{schema}."{table}") '
+        cur.execute(f"select column_name, data_type from {database}.information_schema.columns "
+                    "where table_schema = %s and table_name = %s order by ordinal_position", (schema, table))
+        cols = cur.fetchall()
+        # timestamps travel as ISO text: DuckDB can't always read Snowflake's millisecond Parquet timestamps
+        ts = {c for c, t in cols if t.startswith("TIMESTAMP")}
+        fmt = "'YYYY-MM-DD HH24:MI:SS.FF6'"
+        select = ", ".join((f'to_varchar("{c}", {fmt}) as "{c}"' if c in ts else f'"{c}"') for c, _ in cols)
+        cur.execute(f'copy into @_MIRROR._UNLOAD/{key} from (select {select} from {database}.{schema}."{table}") '
                     "file_format = (type = parquet) header = true overwrite = true")
         dest = tmp / schema / table
         dest.mkdir(parents=True, exist_ok=True)
@@ -49,7 +56,8 @@ def mirror(database: str, duckdb_path: Path) -> int:
             paths = [f.as_posix() for f in files]
             cols = [r[0] for r in duck.execute(f"describe select * from read_parquet({paths})").fetchall()]
             # Snowflake upper-cases unquoted names; give them back their dbt (lower-case) spelling
-            sel = ", ".join(f'"{c}" as "{c.lower() if c == c.upper() else c}"' for c in cols)
+            name = lambda c: c.lower() if c == c.upper() else c
+            sel = ", ".join((f'try_cast("{c}" as timestamp)' if c in ts else f'"{c}"') + f' as "{name(c)}"' for c in cols)
             duck.execute(f"create or replace table {s}.{t} as select {sel} from read_parquet({paths})")
         else:  # an empty table unloads no files
             duck.execute(f"drop table if exists {s}.{t}")
