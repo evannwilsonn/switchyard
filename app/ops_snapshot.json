@@ -1,0 +1,435 @@
+{
+ "generated": "2026-10-09T03:32:46",
+ "target": "snowflake",
+ "projects": [
+  {
+   "name": "bellwether",
+   "title": "Bellwether",
+   "kind": "Markets pipeline",
+   "repo": "https://github.com/evannwilsonn/bellwether.git",
+   "snowflake_database": "BELLWETHER"
+  },
+  {
+   "name": "throughline",
+   "title": "Throughline",
+   "kind": "Executive KPI dashboard",
+   "repo": "https://github.com/evannwilsonn/throughline.git",
+   "snowflake_database": "THROUGHLINE"
+  },
+  {
+   "name": "clip-curator",
+   "title": "Clip Curator",
+   "kind": "AI video curation",
+   "repo": "https://github.com/evannwilsonn/clip-curator.git",
+   "snowflake_database": "CLIP_CURATOR"
+  }
+ ],
+ "latest": {
+  "bellwether": {
+   "run_id": "461abaf7ec8c",
+   "steps": [
+    {
+     "step": "extract",
+     "started_at": "2026-10-09T07:27:25",
+     "seconds": 1.97,
+     "status": "success",
+     "detail": "ran ingest/extract.py"
+    },
+    {
+     "step": "load",
+     "started_at": "2026-10-09T07:27:28",
+     "seconds": 0.82,
+     "status": "success",
+     "detail": "  raw_datahub.sp500_financials              503 rows"
+    },
+    {
+     "step": "warehouse_load",
+     "started_at": "2026-10-09T07:27:29",
+     "seconds": 21.98,
+     "status": "success",
+     "detail": "11 raw tables copied"
+    },
+    {
+     "step": "transform",
+     "started_at": "2026-10-09T07:27:51",
+     "seconds": 21.74,
+     "status": "success",
+     "detail": "PASS=95 WARN=1 ERROR=0 SKIP=0 NO-OP=1 REUSED=0 TOTAL=97"
+    },
+    {
+     "step": "export",
+     "started_at": "2026-10-09T07:28:14",
+     "seconds": 29.87,
+     "status": "success",
+     "detail": "Wrote dashboard\\data.json (85 KB, 441 months, 11 sectors) from Snowflake (19 modeled tables pulled)"
+    }
+   ],
+   "dbt": [
+    {
+     "resource_type": "model",
+     "status": "success",
+     "n": 20,
+     "seconds": 21.602
+    },
+    {
+     "resource_type": "test",
+     "status": "pass",
+     "n": 74,
+     "seconds": 25.482
+    },
+    {
+     "resource_type": "seed",
+     "status": "success",
+     "n": 1,
+     "seconds": 1.069
+    },
+    {
+     "resource_type": "test",
+     "status": "warn",
+     "n": 1,
+     "seconds": 0.479
+    },
+    {
+     "resource_type": "exposure",
+     "status": "no-op",
+     "n": 1,
+     "seconds": 0.009
+    }
+   ],
+   "tables": [
+    {
+     "schema_name": "core",
+     "tables": 6,
+     "row_count": 50041
+    },
+    {
+     "schema_name": "raw_datahub",
+     "tables": 11,
+     "row_count": 41054
+    },
+    {
+     "schema_name": "reference",
+     "tables": 1,
+     "row_count": 11
+    },
+    {
+     "schema_name": "reporting",
+     "tables": 2,
+     "row_count": 452
+    }
+   ]
+  },
+  "throughline": {
+   "run_id": "461abaf7ec8c",
+   "steps": [
+    {
+     "step": "extract",
+     "started_at": "2026-10-09T07:28:46",
+     "seconds": 3.38,
+     "status": "success",
+     "detail": "ran ingest/extract.py"
+    },
+    {
+     "step": "load",
+     "started_at": "2026-10-09T07:28:49",
+     "seconds": 2.3,
+     "status": "success",
+     "detail": "  raw_olist.category_translation           71 rows"
+    },
+    {
+     "step": "warehouse_load",
+     "started_at": "2026-10-09T07:28:52",
+     "seconds": 24.75,
+     "status": "success",
+     "detail": "9 raw tables copied"
+    },
+    {
+     "step": "transform",
+     "started_at": "2026-10-09T07:29:17",
+     "seconds": 20.8,
+     "status": "success",
+     "detail": "PASS=83 WARN=0 ERROR=0 SKIP=0 NO-OP=1 REUSED=0 TOTAL=84"
+    },
+    {
+     "step": "export",
+     "started_at": "2026-10-09T07:29:39",
+     "seconds": 39.69,
+     "status": "success",
+     "detail": "Wrote dashboard\\data.json (121 KB) from Snowflake (19 modeled tables pulled)"
+    }
+   ],
+   "dbt": [
+    {
+     "resource_type": "model",
+     "status": "success",
+     "n": 22,
+     "seconds": 24.701
+    },
+    {
+     "resource_type": "test",
+     "status": "pass",
+     "n": 60,
+     "seconds": 19.492
+    },
+    {
+     "resource_type": "seed",
+     "status": "success",
+     "n": 1,
+     "seconds": 1.181
+    },
+    {
+     "resource_type": "exposure",
+     "status": "no-op",
+     "n": 1,
+     "seconds": 0.006
+    }
+   ],
+   "tables": [
+    {
+     "schema_name": "core",
+     "tables": 5,
+     "row_count": 344233
+    },
+    {
+     "schema_name": "raw_olist",
+     "tables": 9,
+     "row_count": 551543
+    },
+    {
+     "schema_name": "reference",
+     "tables": 1,
+     "row_count": 11
+    },
+    {
+     "schema_name": "reporting",
+     "tables": 5,
+     "row_count": 2212
+    }
+   ]
+  },
+  "clip-curator": {
+   "run_id": "461abaf7ec8c",
+   "steps": [
+    {
+     "step": "extract",
+     "started_at": "2026-10-09T07:30:21",
+     "seconds": 0.02,
+     "status": "success",
+     "detail": "unpacked extraction snapshot"
+    },
+    {
+     "step": "load",
+     "started_at": "2026-10-09T07:30:21",
+     "seconds": 0.37,
+     "status": "success",
+     "detail": "  raw_video.ground_truth     125 rows"
+    },
+    {
+     "step": "warehouse_load",
+     "started_at": "2026-10-09T07:30:22",
+     "seconds": 20.44,
+     "status": "success",
+     "detail": "9 raw tables copied"
+    },
+    {
+     "step": "transform",
+     "started_at": "2026-10-09T07:30:43",
+     "seconds": 24.82,
+     "status": "success",
+     "detail": "PASS=70 WARN=0 ERROR=0 SKIP=0 NO-OP=1 REUSED=0 TOTAL=71"
+    },
+    {
+     "step": "export",
+     "started_at": "2026-10-09T07:31:09",
+     "seconds": 39.68,
+     "status": "success",
+     "detail": "Wrote dashboard\\data.json (446 KB) from Snowflake (20 modeled tables pulled)"
+    }
+   ],
+   "dbt": [
+    {
+     "resource_type": "model",
+     "status": "success",
+     "n": 21,
+     "seconds": 26.273
+    },
+    {
+     "resource_type": "test",
+     "status": "pass",
+     "n": 46,
+     "seconds": 18.064
+    },
+    {
+     "resource_type": "seed",
+     "status": "success",
+     "n": 3,
+     "seconds": 4.179
+    },
+    {
+     "resource_type": "exposure",
+     "status": "no-op",
+     "n": 1,
+     "seconds": 0.001
+    }
+   ],
+   "tables": [
+    {
+     "schema_name": "core",
+     "tables": 3,
+     "row_count": 2212
+    },
+    {
+     "schema_name": "raw_video",
+     "tables": 9,
+     "row_count": 5346
+    },
+    {
+     "schema_name": "reference",
+     "tables": 3,
+     "row_count": 44
+    },
+    {
+     "schema_name": "reporting",
+     "tables": 6,
+     "row_count": 177
+    }
+   ]
+  }
+ },
+ "runs": [
+  {
+   "run_id": "461abaf7ec8c",
+   "started_at": "2026-10-09T07:27:23",
+   "finished_at": "2026-10-09T07:31:51",
+   "target": "snowflake",
+   "trigger_type": "manual",
+   "status": "success"
+  },
+  {
+   "run_id": "550e4b62cbe7",
+   "started_at": "2026-10-09T07:09:48",
+   "finished_at": "2026-10-09T07:28:54",
+   "target": "snowflake",
+   "trigger_type": "manual",
+   "status": "error"
+  },
+  {
+   "run_id": "7ba209575153",
+   "started_at": "2026-10-09T07:08:09",
+   "finished_at": "2026-10-09T07:09:40",
+   "target": "snowflake",
+   "trigger_type": "manual",
+   "status": "success"
+  },
+  {
+   "run_id": "a0abb593d13b",
+   "started_at": "2026-10-09T07:06:16",
+   "finished_at": "2026-10-09T07:07:46",
+   "target": "snowflake",
+   "trigger_type": "manual",
+   "status": "error"
+  },
+  {
+   "run_id": "e604696c722f",
+   "started_at": "2026-10-09T07:02:18",
+   "finished_at": "2026-10-09T07:05:43",
+   "target": "snowflake",
+   "trigger_type": "manual",
+   "status": "error"
+  },
+  {
+   "run_id": "607c6730db1a",
+   "started_at": "2026-10-09T06:58:12",
+   "finished_at": "2026-10-09T07:01:17",
+   "target": "snowflake",
+   "trigger_type": "manual",
+   "status": "error"
+  }
+ ],
+ "run_steps": [
+  {
+   "run_id": "550e4b62cbe7",
+   "project": "clip-curator",
+   "seconds": 73.16,
+   "failed": 0
+  },
+  {
+   "run_id": "607c6730db1a",
+   "project": "bellwether",
+   "seconds": 46.309999999999995,
+   "failed": 1
+  },
+  {
+   "run_id": "607c6730db1a",
+   "project": "throughline",
+   "seconds": 71.97,
+   "failed": 1
+  },
+  {
+   "run_id": "607c6730db1a",
+   "project": "clip-curator",
+   "seconds": 50.67999999999999,
+   "failed": 1
+  },
+  {
+   "run_id": "e604696c722f",
+   "project": "bellwether",
+   "seconds": 53.25,
+   "failed": 1
+  },
+  {
+   "run_id": "e604696c722f",
+   "project": "throughline",
+   "seconds": 79.64,
+   "failed": 1
+  },
+  {
+   "run_id": "e604696c722f",
+   "project": "clip-curator",
+   "seconds": 56.72,
+   "failed": 1
+  },
+  {
+   "run_id": "a0abb593d13b",
+   "project": "bellwether",
+   "seconds": 83.03999999999999,
+   "failed": 1
+  },
+  {
+   "run_id": "7ba209575153",
+   "project": "bellwether",
+   "seconds": 86.7,
+   "failed": 0
+  },
+  {
+   "run_id": "550e4b62cbe7",
+   "project": "bellwether",
+   "seconds": 86.69,
+   "failed": 0
+  },
+  {
+   "run_id": "550e4b62cbe7",
+   "project": "throughline",
+   "seconds": 952.53,
+   "failed": 1
+  },
+  {
+   "run_id": "461abaf7ec8c",
+   "project": "bellwether",
+   "seconds": 76.38,
+   "failed": 0
+  },
+  {
+   "run_id": "461abaf7ec8c",
+   "project": "throughline",
+   "seconds": 90.92,
+   "failed": 0
+  },
+  {
+   "run_id": "461abaf7ec8c",
+   "project": "clip-curator",
+   "seconds": 85.33,
+   "failed": 0
+  }
+ ]
+}
