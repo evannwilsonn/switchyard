@@ -51,9 +51,15 @@ def rows(sql: str) -> list[dict]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--target", choices=["duckdb", "snowflake"], default="duckdb")
+    ap.add_argument("--save-ops", help="also write the ops payload to this JSON file (no credentials needed to rebuild)")
+    ap.add_argument("--from-ops", help="build from a saved ops payload instead of querying the ops log")
     args = ap.parse_args()
-    ops.connect(args.target)
     projects = yaml.safe_load((ROOT / "projects.yml").read_text())["projects"]
+    if args.from_ops:
+        payload = json.loads(Path(args.from_ops).read_text(encoding="utf-8"))
+        write_app(projects, payload)
+        return
+    ops.connect(args.target)
 
     runs = rows("""select run_id, started_at, finished_at, target, trigger_type, status
                    from pipeline_runs where finished_at is not null order by started_at desc limit 25""")
@@ -78,6 +84,15 @@ def main() -> None:
                                max(case when status = 'error' then 1 else 0 end) as failed
                         from step_runs group by 1, 2""")
 
+    payload = {"generated": datetime.now().isoformat(timespec="seconds"), "target": args.target,
+               "projects": [{k: p[k] for k in ("name", "title", "kind", "repo", "snowflake_database")} for p in projects],
+               "latest": latest, "runs": runs, "run_steps": run_steps}
+    if args.save_ops:
+        Path(args.save_ops).write_text(json.dumps(payload, indent=1, default=str), encoding="utf-8")
+    write_app(projects, payload)
+
+
+def write_app(projects: list[dict], payload: dict) -> None:
     if BUILD.exists():
         shutil.rmtree(BUILD)
     BUILD.mkdir(parents=True)
@@ -91,13 +106,10 @@ def main() -> None:
         (BUILD / p["name"]).mkdir()
         (BUILD / p["name"] / "index.html").write_text(html, encoding="utf-8")
 
-    payload = {"generated": datetime.now().isoformat(timespec="seconds"), "target": args.target,
-               "projects": [{k: p[k] for k in ("name", "title", "kind", "repo", "snowflake_database")} for p in projects],
-               "latest": latest, "runs": runs, "run_steps": run_steps}
     page = (ROOT / "app" / "index.html").read_text(encoding="utf-8")
     page = page.replace("/*__OPS__*/", "window.OPS=" + json.dumps(payload, separators=(",", ":"), default=str) + ";")
     (BUILD / "index.html").write_text(page, encoding="utf-8")
-    print(f"Built app/build with {len(latest)} products and {len(runs)} runs of history")
+    print(f"Built app/build with {len(payload['latest'])} products and {len(payload['runs'])} runs of history")
 
 
 if __name__ == "__main__":
