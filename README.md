@@ -16,7 +16,7 @@ Each product stays its own repo and dbt project. Switchyard doesn't copy their c
 
 For every project in `projects.yml`, `switchyard/run.py` runs five steps and stops that product at the first failure:
 
-1. **extract** – the product's own extract scripts (Clip Curator unpacks its published AI extraction snapshot unless `--full-ai` is passed, so a run doesn't need the models).
+1. **extract** – the product's own extract scripts. Clip Curator loads its saved AI results (the YOLOv8 + CLIP output published in its repo) unless `--full-ai` is passed, and the app labels that step "saved AI results" so a green check isn't mistaken for fresh video analysis.
 2. **load** – raw files into the product's local DuckDB landing zone.
 3. **warehouse_load** – raw tables copied into the product's Snowflake database (Parquet → stage → `COPY`, row counts checked against DuckDB).
 4. **transform** – `dbt build`, every model and test, on Snowflake or DuckDB.
@@ -28,11 +28,11 @@ Every run, step, dbt result and table row count goes to an ops schema: `PLATFORM
 
 Run `461abaf7ec8c`, Oct 9 2026, 4m 28s, all three products successful:
 
-| Product | dbt | Tests | Rows in warehouse |
+| Product | dbt | Tests | Cleaned records (core tables) |
 |---|---|---|---|
-| Bellwether | 20 models | 74 pass, 1 warn (stale public macro series, intended) | 92K |
-| Throughline | 22 models | 60 pass | 898K |
-| Clip Curator | 21 models | 46 pass | 7.8K |
+| Bellwether | 20 models | 74 pass, 1 warn (stale public macro series, intended) | 50K |
+| Throughline | 22 models | 60 pass | 344K |
+| Clip Curator | 21 models | 46 pass | 2.2K |
 
 The run history in the app keeps the failed runs from getting the Snowflake export working (timestamp precision and NUMBER types coming back through Parquet); those fixes are in `mirror.py`.
 
@@ -68,3 +68,7 @@ switchyard/mirror.py  Snowflake modeled layers → local DuckDB for export
 app/index.html        platform view shell
 app/build_app.py      builds app/build/ (static, every dashboard inlined)
 ```
+
+## Reading the platform view
+
+Everything on it comes from the ops log, not from the products' data. Step times and statuses are timed by the orchestrator; test and model counts come from dbt's `run_results.json`. "Cleaned records" counts rows in each product's core tables only, because raw and reporting tables hold copies or rollups of the same records. "Last run" is when Switchyard ran, not how fresh each source is; source staleness shows up as dbt warnings (Bellwether's one warning is a public macro series that stopped updating).

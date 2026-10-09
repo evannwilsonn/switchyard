@@ -67,7 +67,7 @@ def step_extract(p: dict, path: Path, args) -> str:
         (path / "data").mkdir(exist_ok=True)
         with tarfile.open(path / "snapshots" / "extracted.tar.gz") as t:
             t.extractall(path / "data", filter="data")
-        return "unpacked extraction snapshot"
+        return "loaded saved AI results from the published snapshot (YOLOv8 + CLIP not re-run; pass --full-ai to re-run)"
     for s in scripts:
         code, out = sh([PY, s], path)
         if code:

@@ -136,7 +136,9 @@ $('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)s
 const tests=prods.flatMap(p=>O.latest[p.name].dbt.filter(d=>d.resource_type==='test'));
 const testPass=tests.filter(d=>d.status==='pass').reduce((a,d)=>a+d.n,0), testAll=tests.reduce((a,d)=>a+d.n,0), testWarn=tests.filter(d=>d.status==='warn').reduce((a,d)=>a+d.n,0);
 const models=prods.flatMap(p=>O.latest[p.name].dbt.filter(d=>d.resource_type==='model')).reduce((a,d)=>a+d.n,0);
-const rowsAll=prods.flatMap(p=>O.latest[p.name].tables).reduce((a,t)=>a+(t.row_count||0),0);
+/* core = cleaned records, each counted once; raw and reporting tables hold copies or rollups of the same rows */
+const coreRows=L=>L.tables.filter(t=>t.schema_name==='core').reduce((a,t)=>a+(t.row_count||0),0);
+const rowsAll=prods.reduce((a,p)=>a+coreRows(O.latest[p.name]),0);
 const last=O.runs[0];
 const runSecs=last?(new Date(last.finished_at.replace(' ','T'))-new Date(last.started_at.replace(' ','T')))/1000:0;
 $('kpis').innerHTML=[
@@ -144,17 +146,17 @@ $('kpis').innerHTML=[
   ['Last run',last?`<span class="pill ${last.status}">${last.status}</span>`:'–',last?`${when(last.started_at)} · ${secs(runSecs)} · ${last.target==='snowflake'?'Snowflake':'DuckDB'}`:''],
   ['Tests passing',`${testPass} / ${testAll}`,testWarn?`${testWarn} intended warning${testWarn>1?'s':''} (stale public data)`:'Across every product'],
   ['dbt models',models,'Built on every run'],
-  ['Rows in the warehouse',fmtN(rowsAll),'Raw through reporting, all products'],
+  ['Cleaned records',fmtN(rowsAll),'Rows in core tables, each counted once'],
 ].map(([l,v,d])=>`<div class="kpi"><div class="lbl">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
 
 /* product cards */
 $('products').innerHTML=prods.map(p=>{
   const L=O.latest[p.name], t=L.dbt, sum=(rt,st)=>t.filter(d=>d.resource_type===rt&&(!st||d.status===st)).reduce((a,d)=>a+d.n,0);
-  const total=L.steps.reduce((a,s)=>a+s.seconds,0), rows=L.tables.reduce((a,x)=>a+(x.row_count||0),0);
+  const total=L.steps.reduce((a,s)=>a+s.seconds,0), rows=coreRows(L);
   const ok=L.steps.every(s=>s.status==='success');
   return `<article class="card prod"><span class="kind">${p.kind}</span><h3>${p.title} <span class="pill ${ok?'success':'error'}">${ok?'healthy':'failed'}</span></h3>
-    <div class="facts"><div><b>${sum('test','pass')}/${sum('test')}</b><span>tests passing</span></div><div><b>${sum('model')}</b><span>models</span></div><div><b>${fmtN(rows)}</b><span>rows</span></div></div>
-    <ul class="steps">${L.steps.map(s=>`<li><span class="dot ${s.status}"></span><span>${STEP_NAME[s.step]||s.step}</span><span class="det" title="${(s.detail||'').replace(/"/g,'&quot;')}">${(s.detail||'').split('\n').pop()}</span><span class="sec">${secs(s.seconds)}</span></li>`).join('')}</ul>
+    <div class="facts"><div><b>${sum('test','pass')}/${sum('test')}</b><span>tests passing</span></div><div><b>${sum('model')}</b><span>models</span></div><div><b>${fmtN(rows)}</b><span>cleaned records</span></div></div>
+    <ul class="steps">${L.steps.map(s=>`<li><span class="dot ${s.status}"></span><span>${s.step==='extract'&&/snapshot/.test(s.detail||'')?'Extract (saved AI results)':STEP_NAME[s.step]||s.step}</span><span class="det" title="${(s.detail||'').replace(/"/g,'&quot;')}">${/snapshot/.test(s.detail||'')?'AI not re-run this time':(s.detail||'').split('\n').pop()}</span><span class="sec">${secs(s.seconds)}</span></li>`).join('')}</ul>
     <p class="layers">${L.tables.map(x=>`<code>${x.schema_name}</code> ${x.tables}`).join(' · ')} tables${p.snowflake_database&&O.target==='snowflake'?` · Snowflake <code>${p.snowflake_database}</code>`:''}</p>
     <button class="open" type="button" data-open="${p.name}">Open the ${p.title} dashboard →</button></article>`}).join('');
 $('products').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
