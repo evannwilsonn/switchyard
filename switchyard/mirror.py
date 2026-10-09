@@ -54,10 +54,17 @@ def mirror(database: str, duckdb_path: Path) -> int:
             duck.execute(f"drop view {s}.{t}")
         if files:
             paths = [f.as_posix() for f in files]
-            cols = [r[0] for r in duck.execute(f"describe select * from read_parquet({paths})").fetchall()]
+            described = duck.execute(f"describe select * from read_parquet({paths})").fetchall()
             # Snowflake upper-cases unquoted names; give them back their dbt (lower-case) spelling
             name = lambda c: c.lower() if c == c.upper() else c
-            sel = ", ".join((f'try_cast("{c}" as timestamp)' if c in ts else f'"{c}"') + f' as "{name(c)}"' for c in cols)
+
+            def expr(c: str, t: str) -> str:
+                if c in ts:
+                    return f'try_cast("{c}" as timestamp)'
+                if t.startswith("DECIMAL"):  # Snowflake NUMBER: whole numbers back to integers, the rest to doubles
+                    return f'cast("{c}" as {"BIGINT" if t.endswith(",0)") else "DOUBLE"})'
+                return f'"{c}"'
+            sel = ", ".join(f'{expr(c, t)} as "{name(c)}"' for c, t, *_ in described)
             duck.execute(f"create or replace table {s}.{t} as select {sel} from read_parquet({paths})")
         else:  # an empty table unloads no files
             duck.execute(f"drop table if exists {s}.{t}")
